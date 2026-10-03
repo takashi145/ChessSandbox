@@ -1,0 +1,78 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+      - run: dotnet test
+
+  build:
+    needs: test
+    strategy:
+      matrix:
+        include:
+          # Self-contained single-file publish can cross-compile, so Windows builds on Linux.
+          # This won't work if switching to NativeAOT.
+          - rid: win-x64
+            os: ubuntu-latest
+            asset: chess-sandbox-win-x64.exe
+          - rid: linux-x64
+            os: ubuntu-latest
+            asset: chess-sandbox-linux-x64
+          - rid: osx-arm64
+            os: macos-latest
+            asset: chess-sandbox-osx-arm64
+          - rid: osx-x64
+            os: macos-latest
+            asset: chess-sandbox-osx-x64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+      - run: dotnet publish ChessSandbox -c Release -r ${{ matrix.rid }} -o out
+      - name: Rename binary
+        shell: bash
+        run: |
+          src=out/chess-sandbox
+          [ "${{ matrix.rid }}" = win-x64 ] && src=out/chess-sandbox.exe
+          mkdir dist
+          mv "$src" "dist/${{ matrix.asset }}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset }}
+          path: dist/${{ matrix.asset }}
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v5
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Generate checksums
+        working-directory: dist
+        run: sha256sum chess-sandbox-* > SHA256SUMS
+      - name: Upload to GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ github.ref_name }}
+        # Create the release only if it doesn't exist, so re-running the workflow for the same tag works.
+        run: |
+          gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --verify-tag --generate-notes
+          gh release upload "$TAG" dist/* --clobber
