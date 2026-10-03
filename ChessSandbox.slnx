@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="ChessSandbox.Tests/ChessSandbox.Tests.csproj" />
+  <Project Path="ChessSandbox/ChessSandbox.csproj" />
+</Solution>
