@@ -5,13 +5,25 @@ namespace ChessSandbox.Tests.Ui;
 
 public class BoardRendererTests
 {
+    private const string Pawn = "♙";
+
     [Fact]
     public void Render_WhiteAndBlackPiecesUseDifferentColors()
     {
         var markup = BoardRenderer.Render(new MoveHistory().CurrentSnapshot(), flipped: false);
 
-        Assert.Contains("[white]♟[/]", markup);
-        Assert.Contains("[orange1]♟[/]", markup);
+        Assert.Contains($"[white]{Pawn}[/]", markup);
+        Assert.Contains($"[orange1]{Pawn}[/]", markup);
+    }
+
+    [Fact]
+    public void Render_DoesNotUseTheEmojiPawn()
+    {
+        var markup = BoardRenderer.Render(new MoveHistory().CurrentSnapshot(), flipped: false);
+
+        Assert.DoesNotContain("♟", markup, StringComparison.Ordinal);
+        Assert.DoesNotContain("︎", markup, StringComparison.Ordinal);
+        Assert.DoesNotContain("️", markup, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -25,8 +37,8 @@ public class BoardRendererTests
 
         var markup = BoardRenderer.Render(history.CurrentSnapshot(), flipped: false);
 
-        Assert.Contains("[white on grey37]♟[/]", markup);
-        Assert.DoesNotContain("[orange1 on grey37]♟[/]", markup);
+        Assert.Contains($"[white on grey37]{Pawn}[/]", markup);
+        Assert.DoesNotContain($"[orange1 on grey37]{Pawn}[/]", markup);
     }
 
     [Fact]

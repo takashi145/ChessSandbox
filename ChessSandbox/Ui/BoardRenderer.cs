@@ -5,19 +5,19 @@ namespace ChessSandbox.Ui;
 
 public static class BoardRenderer
 {
-    // Both sides use filled glyphs; the side is distinguished by color only.
+    // Both sides use the same glyphs; the side is distinguished by color only.
     private const string WhiteColor = "white";
     private const string BlackColor = "orange1";
     private const string HighlightBackground = "grey37";
 
     private static readonly Dictionary<PieceKind, char> Glyphs = new()
     {
-        [PieceKind.King] = '♚',
-        [PieceKind.Queen] = '♛',
-        [PieceKind.Rook] = '♜',
-        [PieceKind.Bishop] = '♝',
-        [PieceKind.Knight] = '♞',
-        [PieceKind.Pawn] = '♟',
+        [PieceKind.King] = '♔',
+        [PieceKind.Queen] = '♕',
+        [PieceKind.Rook] = '♖',
+        [PieceKind.Bishop] = '♗',
+        [PieceKind.Knight] = '♘',
+        [PieceKind.Pawn] = '♙',
     };
 
     // Returns Spectre.Console markup for the 8x8 board only (caller adds header/footer).
