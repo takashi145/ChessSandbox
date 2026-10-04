@@ -11,17 +11,17 @@ A terminal chess board for trying out positions. Play both sides, step back and 
 **Windows** (PowerShell)
 
 ```powershell
-irm https://raw.githubusercontent.com/takashi145/ChessSandbox/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/takashi145/chess-sandbox/main/install.ps1 | iex
 ```
 
 **macOS / Linux**
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/takashi145/ChessSandbox/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/takashi145/chess-sandbox/main/install.sh | sh
 ```
 
-Run the same command again to update. You can also download a binary for your platform from the
-[Releases](https://github.com/takashi145/ChessSandbox/releases/latest) page and put it on your `PATH` yourself.
+Run the same command again to update. You can also download the archive for your platform from the
+[Releases](https://github.com/takashi145/chess-sandbox/releases/latest) page, extract it, and put `chess-sandbox` on your `PATH` yourself.
 
 ### What the installer does
 
