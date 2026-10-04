@@ -1,4 +1,4 @@
-module github.com/takashi145/ChessSandbox
+module github.com/takashi145/chess-sandbox
 
 go 1.27.0
 

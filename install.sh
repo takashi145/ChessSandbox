@@ -1,5 +1,5 @@
 #!/bin/sh
-# Usage: curl -fsSL https://raw.githubusercontent.com/takashi145/ChessSandbox/main/install.sh | sh
+# Usage: curl -fsSL https://raw.githubusercontent.com/takashi145/chess-sandbox/main/install.sh | sh
 # Set CHESS_SANDBOX_INSTALL_DIR to install somewhere other than ~/.local/bin.
 
 # Everything runs from main, called on the last line, so a partially downloaded script does nothing.
@@ -7,7 +7,7 @@
 set -eu
 
 # Asset names must match the ones produced by .github/workflows/release.yml.
-base_url="https://github.com/takashi145/ChessSandbox/releases/latest/download"
+base_url="https://github.com/takashi145/chess-sandbox/releases/latest/download"
 
 tmp=""
 sums=""

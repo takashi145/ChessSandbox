@@ -1,4 +1,4 @@
-# Usage: irm https://raw.githubusercontent.com/takashi145/ChessSandbox/main/install.ps1 | iex
+# Usage: irm https://raw.githubusercontent.com/takashi145/chess-sandbox/main/install.ps1 | iex
 
 # Wrapped in a script block so variables and preference changes don't leak into the caller's session when run via iex.
 # It also means a partially downloaded script fails to parse instead of running halfway.
@@ -8,7 +8,7 @@
     $ProgressPreference = 'SilentlyContinue'
 
     # Asset names must match the ones produced by .github/workflows/release.yml.
-    $baseUrl = 'https://github.com/takashi145/ChessSandbox/releases/latest/download'
+    $baseUrl = 'https://github.com/takashi145/chess-sandbox/releases/latest/download'
     $asset = 'chess-sandbox-win-x64.zip'
     $installDir = Join-Path $env:LOCALAPPDATA 'Programs\chess-sandbox'
     $exePath = Join-Path $installDir 'chess-sandbox.exe'

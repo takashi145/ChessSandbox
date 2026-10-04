@@ -9,17 +9,17 @@
 **Windows**（PowerShell）
 
 ```powershell
-irm https://raw.githubusercontent.com/takashi145/ChessSandbox/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/takashi145/chess-sandbox/main/install.ps1 | iex
 ```
 
 **macOS / Linux**
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/takashi145/ChessSandbox/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/takashi145/chess-sandbox/main/install.sh | sh
 ```
 
 アップデートするときは、同じコマンドをもう一度実行してください。
-[Releases](https://github.com/takashi145/ChessSandbox/releases/latest) ページからお使いの環境用のアーカイブをダウンロードして展開し、
+[Releases](https://github.com/takashi145/chess-sandbox/releases/latest) ページからお使いの環境用のアーカイブをダウンロードして展開し、
 `chess-sandbox` を自分で `PATH` の通った場所に置くこともできます。
 
 ### インストーラーが行うこと

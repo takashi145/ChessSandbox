@@ -6,7 +6,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/takashi145/ChessSandbox/internal/chess"
+	"github.com/takashi145/chess-sandbox/internal/chess"
 )
 
 const commandList = ":flip :fen :home :end :quit"

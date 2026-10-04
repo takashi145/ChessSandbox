@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/takashi145/ChessSandbox/internal/chess"
+	"github.com/takashi145/chess-sandbox/internal/chess"
 )
 
 // Both sides use the same glyphs; the side is distinguished by color only.
