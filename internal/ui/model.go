@@ -58,6 +58,11 @@ func New(store *chess.SessionStore, fen string) (Model, error) {
 	return m, nil
 }
 
+// Starts on `h`, ignoring any saved session.
+func NewFromHistory(store *chess.SessionStore, h *chess.History) Model {
+	return Model{store: store, mode: modeBoard, history: h}
+}
+
 func newStandardHistory() *chess.History {
 	h, err := chess.NewHistory(chess.StandardFEN)
 	if err != nil {

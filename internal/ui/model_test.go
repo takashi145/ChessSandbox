@@ -188,6 +188,17 @@ func TestFENFlagStartsFromThatPosition(t *testing.T) {
 	}
 }
 
+func TestNewFromHistoryStartsOnThatHistoryEvenWithASavedSession(t *testing.T) {
+	store := newStore(t)
+	store.Save(mustHistory(t, "d4"))
+
+	m := NewFromHistory(store, mustHistory(t, "e4", "e5"))
+
+	if m.mode != modeBoard || !slices.Equal(m.history.Moves(), []string{"e4", "e5"}) {
+		t.Errorf("mode=%v moves=%v", m.mode, m.history.Moves())
+	}
+}
+
 func TestInvalidFENFlagIsAnError(t *testing.T) {
 	if _, err := New(newStore(t), "bad"); err == nil {
 		t.Error("expected an error")
