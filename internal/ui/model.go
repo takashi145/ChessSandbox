@@ -1,7 +1,10 @@
 package ui
 
 import (
+	"errors"
 	"fmt"
+	"io/fs"
+	"os"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -9,7 +12,7 @@ import (
 	"github.com/takashi145/chess-sandbox/internal/chess"
 )
 
-const commandList = ":flip :fen :home :end :quit"
+const commandList = ":flip :fen :home :end :pgn <file> :quit"
 
 type mode int
 
@@ -58,7 +61,7 @@ func New(store *chess.SessionStore, fen string) (Model, error) {
 	return m, nil
 }
 
-// Starts on `h`, ignoring any saved session.
+// NewFromHistory starts on h, ignoring any saved session.
 func NewFromHistory(store *chess.SessionStore, h *chess.History) Model {
 	return Model{store: store, mode: modeBoard, history: h}
 }
@@ -198,7 +201,7 @@ func (m Model) submit() (tea.Model, tea.Cmd) {
 	m.message = ""
 
 	if command, ok := strings.CutPrefix(text, ":"); ok {
-		return m.runCommand(strings.ToLower(strings.TrimSpace(command)))
+		return m.runCommand(strings.TrimSpace(command))
 	}
 
 	if m.history.CanGoForward() {
@@ -213,7 +216,12 @@ func (m Model) submit() (tea.Model, tea.Cmd) {
 }
 
 func (m Model) runCommand(command string) (tea.Model, tea.Cmd) {
-	switch command {
+	// The file name must keep its case.
+	if name, path, _ := strings.Cut(command, " "); strings.EqualFold(name, "pgn") {
+		return m.exportPGN(strings.TrimSpace(path))
+	}
+
+	switch strings.ToLower(command) {
 	case "f", "flip":
 		m.flipped = !m.flipped
 	case "fen":
@@ -242,6 +250,32 @@ func (m *Model) save() {
 	if !m.store.Save(m.history) {
 		m.message = "Could not save the session"
 	}
+}
+
+// exportPGN writes the whole line as a PGN.
+func (m Model) exportPGN(path string) (tea.Model, tea.Cmd) {
+	if path == "" {
+		m.message = "Usage: :pgn <file>"
+		return m, nil
+	}
+
+	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o644)
+	if errors.Is(err, fs.ErrExist) {
+		m.message = path + " already exists."
+		return m, nil
+	}
+	if err != nil {
+		m.message = "Could not write " + path
+		return m, nil
+	}
+	defer file.Close()
+
+	if _, err := file.WriteString(m.history.PGN() + "\n"); err != nil {
+		m.message = "Could not write " + path
+		return m, nil
+	}
+	m.message = "Saved PGN to " + path
+	return m, nil
 }
 
 func (m Model) quit() (tea.Model, tea.Cmd) {

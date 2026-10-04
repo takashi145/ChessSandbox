@@ -19,3 +19,13 @@ func ParsePGN(r io.Reader) (startFEN string, moves []string, err error) {
 	}
 	return positions[0].String(), moves, nil
 }
+
+// PGN exports the whole line, not only the moves up to the current position.
+func (h *History) PGN() string {
+	game := h.rebuild(len(h.moves))
+	if h.startFEN != StandardFEN {
+		game.AddTagPair("SetUp", "1")
+		game.AddTagPair("FEN", h.startFEN)
+	}
+	return game.String()
+}

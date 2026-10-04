@@ -73,3 +73,37 @@ func TestParsePGNResultCanBeRestoredAsHistory(t *testing.T) {
 		t.Errorf("restored moves differ from the parsed moves:\n got  %v\n want %v", h.Moves(), moves)
 	}
 }
+
+func TestPGNOfAGameStartedFromAFENUsesTheFENsMoveNumber(t *testing.T) {
+	const fen = "r1bqkbnr/pppp1ppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R b KQkq - 3 23"
+	h, err := NewHistory(fen)
+	if err != nil {
+		t.Fatal(err)
+	}
+	h.TryPlay("a6")
+	h.TryPlay("Ba4")
+
+	got := h.PGN()
+
+	for _, want := range []string{`[SetUp "1"]`, `[FEN "` + fen + `"]`, "23... a6 24. Ba4"} {
+		if !strings.Contains(got, want) {
+			t.Errorf("PGN is missing %q:\n%s", want, got)
+		}
+	}
+}
+
+func TestPGNCanBeParsedBack(t *testing.T) {
+	h := play(t, "e4", "e5", "Nf3", "Nc6", "Bb5")
+
+	fen, moves, err := ParsePGN(strings.NewReader(h.PGN()))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if fen != h.StartFEN() {
+		t.Errorf("fen = %q, want %q", fen, h.StartFEN())
+	}
+	if !slices.Equal(moves, h.Moves()) {
+		t.Errorf("moves = %v, want %v", moves, h.Moves())
+	}
+}

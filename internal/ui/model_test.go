@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"os"
 	"path/filepath"
 	"slices"
 	"strings"
@@ -285,4 +286,43 @@ func mustHistory(t *testing.T, moves ...string) *chess.History {
 		}
 	}
 	return h
+}
+
+func TestPGNCommandWritesTheWholeLine(t *testing.T) {
+	m := newModel(t, newStore(t), "")
+	for _, san := range []string{"e4", "e5", "Nf3"} {
+		m = typed(m, san)
+	}
+	m = typed(m, ":home")
+	path := filepath.Join(t.TempDir(), "MyGame.pgn")
+
+	m = typed(m, ":pgn "+path)
+
+	content, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.TrimSpace(string(content)) != "1. e4 e5 2. Nf3 *" {
+		t.Errorf("content = %q", content)
+	}
+	if m.message != "Saved PGN to "+path {
+		t.Errorf("message = %q", m.message)
+	}
+}
+
+func TestPGNCommandDoesNotOverwriteAnExistingFile(t *testing.T) {
+	m := typed(newModel(t, newStore(t), ""), "e4")
+	path := filepath.Join(t.TempDir(), "game.pgn")
+	if err := os.WriteFile(path, []byte("keep me"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	m = typed(m, ":pgn "+path)
+
+	if content, _ := os.ReadFile(path); string(content) != "keep me" {
+		t.Errorf("file was overwritten: %q", content)
+	}
+	if m.message != path+" already exists." {
+		t.Errorf("message = %q", m.message)
+	}
 }
