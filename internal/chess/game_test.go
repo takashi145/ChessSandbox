@@ -130,3 +130,19 @@ func TestInvalidFENIsRejected(t *testing.T) {
 		}
 	}
 }
+
+func TestFENWithWrongPiecesIsRejected(t *testing.T) {
+	for _, fen := range []string{
+		"8/8/8/8/8/8/8/8 w - - 0 1",
+		"8/8/8/8/8/8/8/4K3 w - - 0 1",
+		"4k3/8/8/8/8/8/8/8 w - - 0 1",
+		"4k3/8/8/8/8/8/8/4K2K w - - 0 1",
+		"k3k3/8/8/8/8/8/8/4K3 w - - 0 1",
+		"P3k3/8/8/8/8/8/8/4K3 w - - 0 1",
+		"4k3/8/8/8/8/8/8/p3K3 w - - 0 1",
+	} {
+		if _, err := newGame(fen); err == nil {
+			t.Errorf("newGame(%q) should fail", fen)
+		}
+	}
+}

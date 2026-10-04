@@ -1,6 +1,7 @@
 package chess
 
 import (
+	"errors"
 	"strings"
 
 	lib "github.com/corentings/chess/v2"
@@ -51,7 +52,36 @@ func newGame(fen string) (*lib.Game, error) {
 	if err != nil {
 		return nil, err
 	}
-	return lib.NewGame(opt), nil
+	game := lib.NewGame(opt)
+	if err := checkPieces(game.Position()); err != nil {
+		return nil, err
+	}
+	return game, nil
+}
+
+func checkPieces(pos *lib.Position) error {
+	var kings [2]int
+	board := pos.Board()
+
+	for file := range 8 {
+		for rank := range 8 {
+			p := board.Piece(lib.NewSquare(lib.File(file), lib.Rank(rank)))
+			if p == lib.NoPiece {
+				continue
+			}
+			if p.Type() == lib.King {
+				kings[toSide(p.Color())]++
+			}
+			if p.Type() == lib.Pawn && (rank == 0 || rank == 7) {
+				return errors.New("pawn on the first or last rank")
+			}
+		}
+	}
+
+	if kings != [2]int{1, 1} {
+		return errors.New("each side needs exactly one king")
+	}
+	return nil
 }
 
 func playSAN(game *lib.Game, san string) (string, bool) {
