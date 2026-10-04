@@ -66,7 +66,7 @@ func newStandardHistory() *chess.History {
 	return h
 }
 
-func (m Model) Init() tea.Cmd { return nil }
+func (m Model) Init() tea.Cmd { return tea.ClearScreen }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	key, ok := msg.(tea.KeyMsg)
