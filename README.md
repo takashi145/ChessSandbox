@@ -52,12 +52,13 @@ To also remove your saved session, delete the `ChessSandbox` folder described un
 ## Usage
 
 ```
-chess-sandbox [--fen "<FEN>"]
+chess-sandbox [--fen "<FEN>" | --pgn <file>]
 ```
 
 | Option | Description |
 |---|---|
 | `--fen "<FEN>"` | Start a new game from this position. Takes priority over a saved session |
+| `--pgn <file>` | Open a game from a PGN file, at its first position. Takes priority over a saved session. |
 
 With no options, it starts from the standard position. If a saved session exists, you can choose to continue it,
 start a new game from the standard position, or start a new game from a FEN you type in.
@@ -70,6 +71,9 @@ chess-sandbox
 
 # Start from a specific position
 chess-sandbox --fen "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1"
+
+# Open a game from a PGN file
+chess-sandbox --pgn game.pgn
 ```
 
 ## Controls
@@ -91,6 +95,7 @@ Commands start with `:`.
 | `:flip` (`:f`) | Flip the board |
 | `:fen` | Show the FEN of the current position |
 | `:home` / `:end` | Jump to start / end of the line |
+| `:pgn <file>` | Write the whole line to a PGN file |
 | `:quit` (`:q`) | Save and quit |
 
 If you step back and play a different move, the moves ahead are discarded. You are asked to confirm first

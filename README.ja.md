@@ -51,12 +51,13 @@ rm ~/.local/bin/chess-sandbox
 ## 使い方
 
 ```
-chess-sandbox [--fen "<FEN>"]
+chess-sandbox [--fen "<FEN>" | --pgn <file>]
 ```
 
 | オプション | 説明 |
 |---|---|
 | `--fen "<FEN>"` | この局面から新しく始める。保存されたセッションより優先される |
+| `--pgn <file>` | PGN ファイルの対局を、最初の局面から開く。保存されたセッションより優先される。 |
 
 オプションを指定しない場合は、標準の初期配置から始めます。保存されたセッションがあるときは、続きから再開する、
 標準の初期配置から新しく始める、入力した FEN から新しく始める、のいずれかを選べます。
@@ -69,6 +70,9 @@ chess-sandbox
 
 # 指定した局面から始める
 chess-sandbox --fen "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1"
+
+# PGN ファイルの対局を開く
+chess-sandbox --pgn game.pgn
 ```
 
 ## 操作方法
@@ -90,6 +94,7 @@ chess-sandbox --fen "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1"
 | `:flip`（`:f`） | 盤面を反転 |
 | `:fen` | 現在の局面の FEN を表示 |
 | `:home` / `:end` | 最初 / 最後の手へ移動 |
+| `:pgn <file>` | 現在の手順の全体を PGN ファイルに書き出す |
 | `:quit`（`:q`） | 保存して終了 |
 
 手を戻した状態で別の手を指すと、それより先の手は消えます。消える前に確認が出ます
