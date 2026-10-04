@@ -9,7 +9,7 @@
 
     # Asset names must match the ones produced by .github/workflows/release.yml.
     $baseUrl = 'https://github.com/takashi145/ChessSandbox/releases/latest/download'
-    $asset = 'chess-sandbox-win-x64.exe'
+    $asset = 'chess-sandbox-win-x64.zip'
     $installDir = Join-Path $env:LOCALAPPDATA 'Programs\chess-sandbox'
     $exePath = Join-Path $installDir 'chess-sandbox.exe'
 
@@ -19,24 +19,30 @@
     New-Item -ItemType Directory -Force -Path $installDir | Out-Null
 
     # Download to temp files first so a failed or tampered download never replaces the installed exe.
-    $tmpPath = "$exePath.download"
+    $zipPath = [IO.Path]::GetTempFileName()
     $sumsPath = [IO.Path]::GetTempFileName()
+    $extractDir = Join-Path ([IO.Path]::GetTempPath()) ([IO.Path]::GetRandomFileName())
     try {
         Write-Host "Downloading chess-sandbox..."
-        Invoke-WebRequest -Uri "$baseUrl/$asset" -OutFile $tmpPath -UseBasicParsing
+        Invoke-WebRequest -Uri "$baseUrl/$asset" -OutFile $zipPath -UseBasicParsing
         Invoke-WebRequest -Uri "$baseUrl/SHA256SUMS" -OutFile $sumsPath -UseBasicParsing
 
         $pattern = '^([0-9a-fA-F]{64})\s+\*?' + [regex]::Escape($asset) + '$'
         $match = Get-Content $sumsPath | Select-String -Pattern $pattern | Select-Object -First 1
         if (-not $match) { throw "Checksum for $asset not found in SHA256SUMS." }
         $expected = $match.Matches[0].Groups[1].Value
-        $actual = (Get-FileHash -Algorithm SHA256 -Path $tmpPath).Hash
+        $actual = (Get-FileHash -Algorithm SHA256 -Path $zipPath).Hash
         if ($actual -ne $expected) { throw "Checksum mismatch for $asset. Aborting installation." }
 
-        Move-Item -Force -Path $tmpPath -Destination $exePath
+        # Expand-Archive requires a .zip extension on Windows PowerShell 5.1, so go through .NET instead.
+        Add-Type -AssemblyName System.IO.Compression.FileSystem
+        [IO.Compression.ZipFile]::ExtractToDirectory($zipPath, $extractDir)
+        # The binary bundles third-party code, so keep its license files next to it.
+        Copy-Item -Force -Path (Join-Path $extractDir 'LICENSE'), (Join-Path $extractDir 'THIRD-PARTY-NOTICES.md') -Destination $installDir
+        Move-Item -Force -Path (Join-Path $extractDir 'chess-sandbox.exe') -Destination $exePath
     }
     finally {
-        Remove-Item -Force -ErrorAction SilentlyContinue -Path $tmpPath, $sumsPath
+        Remove-Item -Force -Recurse -ErrorAction SilentlyContinue -Path $zipPath, $sumsPath, $extractDir
     }
 
     # Read and write the user PATH through the registry without expanding it.

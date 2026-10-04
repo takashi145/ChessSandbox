@@ -11,10 +11,12 @@ base_url="https://github.com/takashi145/ChessSandbox/releases/latest/download"
 
 tmp=""
 sums=""
+extract=""
 
 cleanup() {
     [ -n "$tmp" ] && rm -f "$tmp"
     [ -n "$sums" ] && rm -f "$sums"
+    [ -n "$extract" ] && rm -rf "$extract"
     return 0
 }
 
@@ -61,7 +63,7 @@ main() {
         exit 1
     fi
 
-    asset="chess-sandbox-$os-$arch"
+    asset="chess-sandbox-$os-$arch.tar.gz"
 
     mkdir -p "$install_dir"
 
@@ -71,6 +73,7 @@ main() {
     trap 'exit 1' HUP INT TERM
     tmp=$(mktemp "$install_dir/.chess-sandbox.XXXXXX")
     sums=$(mktemp)
+    extract=$(mktemp -d)
 
     echo "Downloading chess-sandbox..."
     download "$base_url/$asset" "$tmp"
@@ -87,6 +90,8 @@ main() {
         exit 1
     fi
 
+    tar -xzf "$tmp" -C "$extract" chess-sandbox
+    mv -f "$extract/chess-sandbox" "$tmp"
     chmod 755 "$tmp"
     mv -f "$tmp" "$install_dir/chess-sandbox"
 

@@ -19,8 +19,8 @@ curl -fsSL https://raw.githubusercontent.com/takashi145/ChessSandbox/main/instal
 ```
 
 アップデートするときは、同じコマンドをもう一度実行してください。
-[Releases](https://github.com/takashi145/ChessSandbox/releases/latest) ページからお使いの環境用のバイナリをダウンロードし、
-自分で `PATH` の通った場所に置くこともできます。
+[Releases](https://github.com/takashi145/ChessSandbox/releases/latest) ページからお使いの環境用のアーカイブをダウンロードして展開し、
+`chess-sandbox` を自分で `PATH` の通った場所に置くこともできます。
 
 ### インストーラーが行うこと
 

@@ -18,56 +18,19 @@ jobs:
           go-version-file: go.mod
       - run: go test ./...
 
-  build:
+  release:
     needs: test
-    strategy:
-      matrix:
-        include:
-          - goos: windows
-            goarch: amd64
-            asset: chess-sandbox-win-x64.exe
-          - goos: linux
-            goarch: amd64
-            asset: chess-sandbox-linux-x64
-          - goos: darwin
-            goarch: arm64
-            asset: chess-sandbox-osx-arm64
-          - goos: darwin
-            goarch: amd64
-            asset: chess-sandbox-osx-x64
     runs-on: ubuntu-latest
-    env:
-      CGO_ENABLED: 0
-      GOOS: ${{ matrix.goos }}
-      GOARCH: ${{ matrix.goarch }}
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
       - uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
-      - run: go build -trimpath -ldflags="-s -w" -o "dist/${{ matrix.asset }}" ./cmd/chess-sandbox
-      - uses: actions/upload-artifact@v4
+      - uses: goreleaser/goreleaser-action@v6
         with:
-          name: ${{ matrix.asset }}
-          path: dist/${{ matrix.asset }}
-
-  release:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/download-artifact@v5
-        with:
-          path: dist
-          merge-multiple: true
-      - name: Generate checksums
-        working-directory: dist
-        run: sha256sum chess-sandbox-* > SHA256SUMS
-      - name: Upload to GitHub Release
+          version: "~> v2"
+          args: release --clean
         env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-          TAG: ${{ github.ref_name }}
-        # Create the release only if it doesn't exist, so re-running the workflow for the same tag works.
-        run: |
-          gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --verify-tag --generate-notes
-          gh release upload "$TAG" dist/* --clobber
+          GITHUB_TOKEN: ${{ github.token }}
