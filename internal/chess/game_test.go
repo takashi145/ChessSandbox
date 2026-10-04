@@ -39,7 +39,7 @@ func TestStartPosition(t *testing.T) {
 
 func TestSnapshotReflectsLastMove(t *testing.T) {
 	s := mustPlay(t, StandardFEN, "e4", "e5")
-	if s.SAN != "e5" || s.MoveNumber != 2 || s.SideToMove != White {
+	if s.SAN != "e5" || s.MoveNumber != 1 || s.Mover != Black || s.SideToMove != White {
 		t.Errorf("unexpected snapshot: %+v", s)
 	}
 	if *s.From != (Square{4, 6}) || *s.To != (Square{4, 4}) {
@@ -144,5 +144,19 @@ func TestFENWithWrongPiecesIsRejected(t *testing.T) {
 		if _, err := newGame(fen); err == nil {
 			t.Errorf("newGame(%q) should fail", fen)
 		}
+	}
+}
+
+func TestSnapshotNumbersMovesFromStartFEN(t *testing.T) {
+	const fen = "r1bqkbnr/pppp1ppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R b KQkq - 3 23"
+
+	black := mustPlay(t, fen, "a6")
+	white := mustPlay(t, fen, "a6", "Ba4")
+
+	if black.MoveNumber != 23 || black.Mover != Black {
+		t.Errorf("after a6: move %d by %v, want 23 by Black", black.MoveNumber, black.Mover)
+	}
+	if white.MoveNumber != 24 || white.Mover != White {
+		t.Errorf("after Ba4: move %d by %v, want 24 by White", white.MoveNumber, white.Mover)
 	}
 }
