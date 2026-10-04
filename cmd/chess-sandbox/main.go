@@ -41,12 +41,16 @@ func run(args []string) int {
 	store := chess.DefaultSessionStore()
 	var model ui.Model
 	if pgnPath != "" {
-		history, err := loadPGN(pgnPath)
+		games, err := loadPGN(pgnPath)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "Cannot load PGN:", err)
 			return 1
 		}
-		model = ui.NewFromHistory(store, history)
+		model, err = ui.NewFromGames(store, games)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "Cannot load PGN:", err)
+			return 1
+		}
 	} else {
 		var err error
 		model, err = ui.New(store, fen)
@@ -63,17 +67,12 @@ func run(args []string) int {
 	return 0
 }
 
-func loadPGN(path string) (*chess.History, error) {
+func loadPGN(path string) ([]chess.PGNGame, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, err
 	}
 	defer file.Close()
 
-	games, err := chess.ParsePGNGames(file)
-	if err != nil {
-		return nil, err
-	}
-	// A PGN is opened to read a game from the beginning, so start at the first position rather than the last move.
-	return chess.RestoreHistory(games[0].StartFEN, games[0].Moves, 0)
+	return chess.ParsePGNGames(file)
 }

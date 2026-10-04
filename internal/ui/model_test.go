@@ -189,17 +189,6 @@ func TestFENFlagStartsFromThatPosition(t *testing.T) {
 	}
 }
 
-func TestNewFromHistoryStartsOnThatHistoryEvenWithASavedSession(t *testing.T) {
-	store := newStore(t)
-	store.Save(mustHistory(t, "d4"))
-
-	m := NewFromHistory(store, mustHistory(t, "e4", "e5"))
-
-	if m.mode != modeBoard || !slices.Equal(m.history.Moves(), []string{"e4", "e5"}) {
-		t.Errorf("mode=%v moves=%v", m.mode, m.history.Moves())
-	}
-}
-
 func TestInvalidFENFlagIsAnError(t *testing.T) {
 	if _, err := New(newStore(t), "bad"); err == nil {
 		t.Error("expected an error")
@@ -324,5 +313,69 @@ func TestPGNCommandDoesNotOverwriteAnExistingFile(t *testing.T) {
 	}
 	if m.message != path+" already exists." {
 		t.Errorf("message = %q", m.message)
+	}
+}
+
+func TestPGNWithOneGameOpensItDirectlyEvenWithASavedSession(t *testing.T) {
+	store := newStore(t)
+	store.Save(mustHistory(t, "d4"))
+	games := []chess.PGNGame{{StartFEN: chess.StandardFEN, Moves: []string{"e4", "e5"}}}
+
+	m, err := NewFromGames(store, games)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if m.mode != modeBoard || !slices.Equal(m.history.Moves(), []string{"e4", "e5"}) {
+		t.Errorf("mode=%v moves=%v", m.mode, m.history.Moves())
+	}
+}
+
+func TestPGNWithSeveralGamesOpensTheChosenOne(t *testing.T) {
+	games := []chess.PGNGame{
+		{StartFEN: chess.StandardFEN, Moves: []string{"e4"}},
+		{StartFEN: chess.StandardFEN, Moves: []string{"d4", "d5"}},
+		{StartFEN: chess.StandardFEN, Moves: []string{"c4"}},
+	}
+	m, err := NewFromGames(newStore(t), games)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if m.mode != modeGames {
+		t.Fatalf("mode = %v, want modeGames", m.mode)
+	}
+
+	m = press(m, down, enter)
+
+	if m.mode != modeBoard || !slices.Equal(m.history.Moves(), []string{"d4", "d5"}) {
+		t.Errorf("mode=%v moves=%v", m.mode, m.history.Moves())
+	}
+}
+
+func TestVisibleRangeKeepsTheCursorInView(t *testing.T) {
+	for _, tt := range []struct{ cursor, total, size, from, to int }{
+		{0, 100, 15, 0, 15},
+		{50, 100, 15, 43, 58},
+		{99, 100, 15, 85, 100},
+		{1, 3, 15, 0, 3},
+	} {
+		if from, to := visibleRange(tt.cursor, tt.total, tt.size); from != tt.from || to != tt.to {
+			t.Errorf("visibleRange(%d, %d, %d) = %d, %d; want %d, %d",
+				tt.cursor, tt.total, tt.size, from, to, tt.from, tt.to)
+		}
+	}
+}
+
+func TestShortNameCutsOnlyLongNames(t *testing.T) {
+	for name, tt := range map[string]struct{ in, want string }{
+		"exact fit": {strings.Repeat("b", maxNameWidth), strings.Repeat("b", maxNameWidth)},
+		"too long":  {strings.Repeat("a", maxNameWidth+5), strings.Repeat("a", maxNameWidth-1) + "…"},
+		"multibyte": {strings.Repeat("é", maxNameWidth+1), strings.Repeat("é", maxNameWidth-1) + "…"},
+	} {
+		t.Run(name, func(t *testing.T) {
+			if got := shortName(tt.in); got != tt.want {
+				t.Errorf("shortName(%q) = %q, want %q", tt.in, got, tt.want)
+			}
+		})
 	}
 }
