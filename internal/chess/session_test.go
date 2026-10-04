@@ -102,7 +102,7 @@ func TestLoadCorruptFileReturnsNil(t *testing.T) {
 	}
 }
 
-func TestLoadReadsSessionWrittenByDotNetVersion(t *testing.T) {
+func TestLoadReadsSavedFileFormat(t *testing.T) {
 	const content = `{"StartFen":"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1","Moves":["e4","e5","Nf3"],"Position":2}`
 	path := sessionPath(t)
 	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
