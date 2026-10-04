@@ -70,10 +70,10 @@ func loadPGN(path string) (*chess.History, error) {
 	}
 	defer file.Close()
 
-	startFEN, moves, err := chess.ParsePGN(file)
+	games, err := chess.ParsePGNGames(file)
 	if err != nil {
 		return nil, err
 	}
 	// A PGN is opened to read a game from the beginning, so start at the first position rather than the last move.
-	return chess.RestoreHistory(startFEN, moves, 0)
+	return chess.RestoreHistory(games[0].StartFEN, games[0].Moves, 0)
 }

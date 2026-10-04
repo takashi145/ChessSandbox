@@ -1,6 +1,7 @@
 package chess
 
 import (
+	"reflect"
 	"slices"
 	"strings"
 	"testing"
@@ -14,11 +15,12 @@ func TestParsePGNReadsHeadersAndMoves(t *testing.T) {
 
 1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 1-0
 `
-	fen, moves, err := ParsePGN(strings.NewReader(pgn))
+	games, err := ParsePGNGames(strings.NewReader(pgn))
 
 	if err != nil {
 		t.Fatal(err)
 	}
+	fen, moves := games[0].StartFEN, games[0].Moves
 	if fen != StandardFEN {
 		t.Errorf("fen = %q, want %q", fen, StandardFEN)
 	}
@@ -35,11 +37,12 @@ func TestParsePGNUsesTheFENHeaderAsStartPosition(t *testing.T) {
 
 3... a6 4. Ba4 Nf6 *
 `
-	fen, moves, err := ParsePGN(strings.NewReader(pgn))
+	games, err := ParsePGNGames(strings.NewReader(pgn))
 
 	if err != nil {
 		t.Fatal(err)
 	}
+	fen, moves := games[0].StartFEN, games[0].Moves
 	if fen != startFEN {
 		t.Errorf("fen = %q, want %q", fen, startFEN)
 	}
@@ -56,10 +59,11 @@ func TestParsePGNResultCanBeRestoredAsHistory(t *testing.T) {
 8. Nc3 c6 9. Bg5 b5 10. Nxb5 cxb5 11. Bxb5+ Nbd7 12. O-O-O Rd8 13. Rxd7 Rxd7
 14. Rd1 Qe6 15. Bxd7+ Nxd7 16. Qb8+ Nxb8 17. Rd8# 1-0
 `
-	fen, moves, err := ParsePGN(strings.NewReader(pgn))
+	games, err := ParsePGNGames(strings.NewReader(pgn))
 	if err != nil {
 		t.Fatal(err)
 	}
+	fen, moves := games[0].StartFEN, games[0].Moves
 
 	h, err := RestoreHistory(fen, moves, 0)
 	if err != nil {
@@ -95,15 +99,53 @@ func TestPGNOfAGameStartedFromAFENUsesTheFENsMoveNumber(t *testing.T) {
 func TestPGNCanBeParsedBack(t *testing.T) {
 	h := play(t, "e4", "e5", "Nf3", "Nc6", "Bb5")
 
-	fen, moves, err := ParsePGN(strings.NewReader(h.PGN()))
+	games, err := ParsePGNGames(strings.NewReader(h.PGN()))
 	if err != nil {
 		t.Fatal(err)
 	}
+	fen, moves := games[0].StartFEN, games[0].Moves
 
 	if fen != h.StartFEN() {
 		t.Errorf("fen = %q, want %q", fen, h.StartFEN())
 	}
 	if !slices.Equal(moves, h.Moves()) {
 		t.Errorf("moves = %v, want %v", moves, h.Moves())
+	}
+}
+
+func TestParsePGNGamesReadsEveryGame(t *testing.T) {
+	const pgn = `[Event "One"]
+[White "Alice"]
+[Black "Bob"]
+[Result "1-0"]
+[Date "2026.10.01"]
+
+1. e4 e5 2. Nf3 1-0
+
+[Event "Two"]
+[White "Carol"]
+[Black "Dave"]
+[Result "1/2-1/2"]
+
+1. d4 d5 1/2-1/2
+
+[Event "Three"]
+[SetUp "1"]
+[FEN "7k/P7/8/8/8/8/8/K7 w - - 0 1"]
+
+1. a8=Q+ *
+`
+	games, err := ParsePGNGames(strings.NewReader(pgn))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	want := []PGNGame{
+		{"Alice", "Bob", "1-0", "2026.10.01", StandardFEN, []string{"e4", "e5", "Nf3"}},
+		{"Carol", "Dave", "1/2-1/2", "", StandardFEN, []string{"d4", "d5"}},
+		{"", "", "", "", "7k/P7/8/8/8/8/8/K7 w - - 0 1", []string{"a8=Q+"}},
+	}
+	if !reflect.DeepEqual(games, want) {
+		t.Errorf("games = %+v, want %+v", games, want)
 	}
 }
