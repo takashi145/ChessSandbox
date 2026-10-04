@@ -319,9 +319,8 @@ func describeLastMove(s chess.Snapshot) string {
 		return "(start position)"
 	}
 
-	number := (s.MoveNumber + 1) / 2
 	dots := "..."
-	if s.MoveNumber%2 == 1 {
+	if s.Mover == chess.White {
 		dots = "."
 	}
 
@@ -331,7 +330,7 @@ func describeLastMove(s chess.Snapshot) string {
 	} else if s.IsCheck {
 		suffix = " check"
 	}
-	return fmt.Sprintf("%d%s %s%s", number, dots, s.SAN, suffix)
+	return fmt.Sprintf("%d%s %s%s", s.MoveNumber, dots, s.SAN, suffix)
 }
 
 func colored(code, text string) string {

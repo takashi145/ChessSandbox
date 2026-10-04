@@ -41,6 +41,7 @@ type Snapshot struct {
 	Board       [8][8]*Piece
 	MoveNumber  int
 	SideToMove  Side
+	Mover       Side
 	SAN         string
 	From, To    *Square
 	IsCheck     bool
@@ -117,8 +118,10 @@ func snapshot(game *lib.Game) Snapshot {
 
 	last := moves[len(moves)-1]
 	positions := game.Positions()
-	s.MoveNumber = len(moves)
-	s.SAN = lib.AlgebraicNotation{}.Encode(positions[len(positions)-2], last)
+	before := positions[len(positions)-2]
+	s.Mover = toSide(before.Turn())
+	s.MoveNumber = (before.Ply() + 1) / 2
+	s.SAN = lib.AlgebraicNotation{}.Encode(before, last)
 	s.From = toSquare(last.S1())
 	s.To = toSquare(last.S2())
 	s.IsCheck = last.HasTag(lib.Check)
