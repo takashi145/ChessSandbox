@@ -10,7 +10,10 @@ import (
 	"github.com/takashi145/chess-sandbox/internal/ui"
 )
 
-const usage = `Usage: chess-sandbox [--fen "<FEN>" | --pgn <file>]`
+const usage = `Usage: chess-sandbox [--fen "<FEN>" | --pgn <file>] [--version]`
+
+// Set at build time by goreleaser.
+var version = "dev"
 
 func main() {
 	os.Exit(run(os.Args[1:]))
@@ -21,6 +24,9 @@ func run(args []string) int {
 
 	for i := 0; i < len(args); i++ {
 		switch {
+		case args[i] == "--version":
+			fmt.Println(version)
+			return 0
 		case args[i] == "--fen" && i+1 < len(args):
 			i++
 			fen = args[i]

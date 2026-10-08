@@ -52,13 +52,14 @@ To also remove your saved session, delete the `ChessSandbox` folder described un
 ## Usage
 
 ```
-chess-sandbox [--fen "<FEN>" | --pgn <file>]
+chess-sandbox [--fen "<FEN>" | --pgn <file>] [--version]
 ```
 
 | Option | Description |
 |---|---|
 | `--fen "<FEN>"` | Start a new game from this position. Takes priority over a saved session |
 | `--pgn <file>` | Open a game from a PGN file, at its first position. Takes priority over a saved session. |
+| `--version` | Print the version |
 
 With no options, it starts from the standard position. If a saved session exists, you can choose to continue it,
 start a new game from the standard position, or start a new game from a FEN you type in.
