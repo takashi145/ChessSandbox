@@ -12,7 +12,16 @@ const (
 	whiteColor          = "37"
 	blackColor          = "38;5;208"
 	highlightBackground = "48;5;59"
+	previewBackground   = "48;5;24"
 	reset               = "\x1b[0m"
+)
+
+type squareMark int
+
+const (
+	markNone squareMark = iota
+	markLast
+	markPreview
 )
 
 var glyphs = map[chess.PieceKind]rune{
@@ -25,7 +34,7 @@ var glyphs = map[chess.PieceKind]rune{
 }
 
 // Returns ANSI-colored text for the 8x8 board only (caller adds header/footer).
-func renderBoard(s chess.Snapshot, flipped bool) string {
+func renderBoard(s chess.Snapshot, flipped bool, mark squareMark) string {
 	files := fileLabels(flipped)
 	var b strings.Builder
 
@@ -37,9 +46,12 @@ func renderBoard(s chess.Snapshot, flipped bool) string {
 
 		for _, file := range fileOrder(flipped) {
 			sq := chess.Square{File: file, Rank: rank}
-			highlighted := (s.From != nil && *s.From == sq) || (s.To != nil && *s.To == sq)
+			squareState := markNone
+			if (s.From != nil && *s.From == sq) || (s.To != nil && *s.To == sq) {
+				squareState = mark
+			}
 
-			b.WriteString(renderSquare(s.Board[file][rank], highlighted))
+			b.WriteString(renderSquare(s.Board[file][rank], squareState))
 			b.WriteByte(' ')
 		}
 
@@ -52,10 +64,12 @@ func renderBoard(s chess.Snapshot, flipped bool) string {
 	return b.String()
 }
 
-func renderSquare(piece *chess.Piece, highlighted bool) string {
+func renderSquare(piece *chess.Piece, mark squareMark) string {
+	background := markBackground(mark)
+
 	if piece == nil {
-		if highlighted {
-			return "\x1b[" + highlightBackground + "m " + reset
+		if background != "" {
+			return "\x1b[" + background + "m " + reset
 		}
 		return " "
 	}
@@ -64,10 +78,20 @@ func renderSquare(piece *chess.Piece, highlighted bool) string {
 	if piece.Color == chess.Black {
 		color = blackColor
 	}
-	if highlighted {
-		color += ";" + highlightBackground
+	if background != "" {
+		color += ";" + background
 	}
 	return fmt.Sprintf("\x1b[%sm%c%s", color, glyphs[piece.Kind], reset)
+}
+
+func markBackground(mark squareMark) string {
+	switch mark {
+	case markLast:
+		return highlightBackground
+	case markPreview:
+		return previewBackground
+	}
+	return ""
 }
 
 func ranks(flipped bool) []int {

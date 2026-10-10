@@ -185,3 +185,58 @@ func TestRestoreRejectsPositionOutOfRange(t *testing.T) {
 		}
 	}
 }
+
+func TestPreviewAgreesWithWhatEnterWouldPlay(t *testing.T) {
+	for _, input := range []string{"e4", " Nf3", "Qh9", ""} {
+		got := play(t).Preview(input).State == PreviewLegal
+		want := play(t).TryPlay(input)
+
+		if got != want {
+			t.Errorf("%q: preview legal = %v, Enter plays = %v", input, got, want)
+		}
+	}
+}
+
+func TestPreviewReportsTheSquaresAndLeavesTheHistoryAlone(t *testing.T) {
+	h := play(t)
+
+	p := h.Preview("Nf3")
+
+	if p.From == nil || *p.From != (Square{6, 0}) || p.To == nil || *p.To != (Square{5, 2}) {
+		t.Errorf("from/to = %v/%v, want g1/f3", p.From, p.To)
+	}
+	if len(h.Moves()) != 0 || h.Position() != 0 {
+		t.Errorf("history changed: moves=%v position=%d", h.Moves(), h.Position())
+	}
+}
+
+func TestPreviewTellsLegalPartialAndInvalidInput(t *testing.T) {
+	for input, want := range map[string]PreviewState{
+		"Nf3": PreviewLegal,
+		"N":   PreviewPartial,
+		"Nf":  PreviewPartial,
+		"e2":  PreviewPartial,
+		"Nf5": PreviewInvalid,
+		"":    PreviewNone,
+	} {
+		if got := play(t).Preview(input).State; got != want {
+			t.Errorf("Preview(%q) = %v, want %v", input, got, want)
+		}
+	}
+}
+
+func TestCandidatesAreTheLegalMovesStartingWithTheInputInSANOrder(t *testing.T) {
+	h := play(t)
+
+	var got []string
+	for _, c := range h.Candidates("N") {
+		got = append(got, c.SAN)
+	}
+
+	if !slices.Equal(got, []string{"Na3", "Nc3", "Nf3", "Nh3"}) {
+		t.Errorf("Candidates(N) = %v", got)
+	}
+	if len(h.Candidates("Nf5")) != 0 {
+		t.Error("Nf5 should have no candidates")
+	}
+}

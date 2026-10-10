@@ -2,6 +2,8 @@ package chess
 
 import (
 	"fmt"
+	"slices"
+	"strings"
 
 	lib "github.com/corentings/chess/v2"
 )
@@ -54,6 +56,43 @@ func (h *History) CurrentFEN() string { return currentFEN(h.game) }
 
 func (h *History) Snapshot() Snapshot { return snapshot(h.game) }
 
+type PreviewState int
+
+const (
+	PreviewNone PreviewState = iota
+	PreviewLegal
+	PreviewPartial
+	PreviewInvalid
+)
+
+type Preview struct {
+	State    PreviewState
+	From, To *Square
+}
+
+// Preview matches what TryPlay accepts, because both use the same notation decoder.
+func (h *History) Preview(input string) Preview {
+	input = strings.TrimSpace(input)
+	if input == "" {
+		return Preview{}
+	}
+
+	pos := h.game.Position()
+	move, err := lib.AlgebraicNotation{}.Decode(pos, input)
+	if err == nil {
+		return Preview{State: PreviewLegal, From: toSquare(move.S1()), To: toSquare(move.S2())}
+	}
+
+	for _, m := range pos.ValidMoves() {
+		san := strings.TrimRight(lib.AlgebraicNotation{}.Encode(pos, &m), "+#")
+		coordinates := m.S1().String() + m.S2().String()
+		if strings.HasPrefix(san, input) || strings.HasPrefix(coordinates, input) {
+			return Preview{State: PreviewPartial}
+		}
+	}
+	return Preview{State: PreviewInvalid}
+}
+
 // Plays a move at the current position, dropping any moves ahead. State is unchanged on failure.
 func (h *History) TryPlay(san string) bool {
 	probe := h.rebuild(h.position)
@@ -103,4 +142,26 @@ func (h *History) rebuild(position int) *lib.Game {
 	}
 
 	return game
+}
+
+type Candidate struct {
+	SAN      string
+	From, To *Square
+}
+
+// Candidates returns the legal moves whose SAN starts with input, in SAN order.
+func (h *History) Candidates(input string) []Candidate {
+	input = strings.TrimSpace(input)
+	pos := h.game.Position()
+
+	var candidates []Candidate
+	for _, m := range pos.ValidMoves() {
+		san := lib.AlgebraicNotation{}.Encode(pos, &m)
+		if strings.HasPrefix(strings.TrimRight(san, "+#"), input) {
+			candidates = append(candidates, Candidate{SAN: san, From: toSquare(m.S1()), To: toSquare(m.S2())})
+		}
+	}
+
+	slices.SortFunc(candidates, func(a, b Candidate) int { return strings.Compare(a.SAN, b.SAN) })
+	return candidates
 }
