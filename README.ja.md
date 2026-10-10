@@ -2,7 +2,7 @@
 
 局面を試すための、ターミナル用のチェス盤です。両方の側を自分で指し、手を戻したり進めたりでき、前回の続きから再開できます。
 
-<img width="826" height="454" alt="demo" src="https://github.com/user-attachments/assets/87d68cee-2022-4cbc-9557-1e931d88f525" />
+<img width="782" height="376" alt="demo" src="https://github.com/user-attachments/assets/5e98d9b6-90fd-4bd3-ad92-c2a7e6e66d0b" />
 
 ## インストール
 

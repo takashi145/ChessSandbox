@@ -4,7 +4,7 @@ English | [日本語](README.ja.md)
 
 A terminal chess board for trying out positions. Play both sides, step back and forward through your moves, and pick up where you left off.
 
-<img width="826" height="454" alt="demo" src="https://github.com/user-attachments/assets/87d68cee-2022-4cbc-9557-1e931d88f525" />
+<img width="782" height="376" alt="demo" src="https://github.com/user-attachments/assets/5e98d9b6-90fd-4bd3-ad92-c2a7e6e66d0b" />
 
 ## Installation
 
