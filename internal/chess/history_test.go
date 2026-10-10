@@ -209,3 +209,18 @@ func TestPreviewReportsTheSquaresAndLeavesTheHistoryAlone(t *testing.T) {
 		t.Errorf("history changed: moves=%v position=%d", h.Moves(), h.Position())
 	}
 }
+
+func TestPreviewTellsLegalPartialAndInvalidInput(t *testing.T) {
+	for input, want := range map[string]PreviewState{
+		"Nf3": PreviewLegal,
+		"N":   PreviewPartial,
+		"Nf":  PreviewPartial,
+		"e2":  PreviewPartial,
+		"Nf5": PreviewInvalid,
+		"":    PreviewNone,
+	} {
+		if got := play(t).Preview(input).State; got != want {
+			t.Errorf("Preview(%q) = %v, want %v", input, got, want)
+		}
+	}
+}

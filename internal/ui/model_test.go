@@ -379,3 +379,13 @@ func TestShortNameCutsOnlyLongNames(t *testing.T) {
 		})
 	}
 }
+
+func TestOnlyInvalidMoveInputTurnsRed(t *testing.T) {
+	for input, wantRed := range map[string]bool{"Nf5": true, "Nf3": false, "N": false, ":flip": false} {
+		m := press(newModel(t, newStore(t), ""), runes(input))
+
+		if got := strings.Contains(m.View(), "\x1b[31m> "+input); got != wantRed {
+			t.Errorf("%q: red = %v, want %v", input, got, wantRed)
+		}
+	}
+}

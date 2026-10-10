@@ -434,12 +434,15 @@ func orUnknown(s string) string {
 func (m Model) viewBoard(b *strings.Builder) {
 	s := m.history.Snapshot()
 
+	var preview chess.Preview
+	if m.mode == modeBoard && !strings.HasPrefix(string(m.input), ":") {
+		preview = m.history.Preview(string(m.input))
+	}
+
 	board, mark := s, markLast
-	if m.mode == modeBoard {
-		if p := m.history.Preview(string(m.input)); p.State == chess.PreviewLegal {
-			board.From, board.To = p.From, p.To
-			mark = markPreview
-		}
+	if preview.State == chess.PreviewLegal {
+		board.From, board.To = preview.From, preview.To
+		mark = markPreview
 	}
 
 	b.WriteString(renderBoard(board, m.flipped, mark))
@@ -455,7 +458,11 @@ func (m Model) viewBoard(b *strings.Builder) {
 		b.WriteString(colored("31", "This will discard the moves ahead. Continue? (y/N)"))
 		return
 	}
-	b.WriteString("> " + string(m.input) + "_")
+	prompt := "> " + string(m.input)
+	if preview.State == chess.PreviewInvalid {
+		prompt = colored("31", prompt)
+	}
+	b.WriteString(prompt + "_")
 }
 
 func (m Model) hint() string {

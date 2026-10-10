@@ -60,6 +60,8 @@ type PreviewState int
 const (
 	PreviewNone PreviewState = iota
 	PreviewLegal
+	PreviewPartial
+	PreviewInvalid
 )
 
 type Preview struct {
@@ -74,11 +76,20 @@ func (h *History) Preview(input string) Preview {
 		return Preview{}
 	}
 
-	move, err := lib.AlgebraicNotation{}.Decode(h.game.Position(), input)
-	if err != nil {
-		return Preview{}
+	pos := h.game.Position()
+	move, err := lib.AlgebraicNotation{}.Decode(pos, input)
+	if err == nil {
+		return Preview{State: PreviewLegal, From: toSquare(move.S1()), To: toSquare(move.S2())}
 	}
-	return Preview{State: PreviewLegal, From: toSquare(move.S1()), To: toSquare(move.S2())}
+
+	for _, m := range pos.ValidMoves() {
+		san := strings.TrimRight(lib.AlgebraicNotation{}.Encode(pos, &m), "+#")
+		coordinates := m.S1().String() + m.S2().String()
+		if strings.HasPrefix(san, input) || strings.HasPrefix(coordinates, input) {
+			return Preview{State: PreviewPartial}
+		}
+	}
+	return Preview{State: PreviewInvalid}
 }
 
 // Plays a move at the current position, dropping any moves ahead. State is unchanged on failure.
