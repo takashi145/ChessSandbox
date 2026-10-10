@@ -390,29 +390,34 @@ func TestOnlyInvalidMoveInputTurnsRed(t *testing.T) {
 	}
 }
 
-func TestPickingAMoveWithTheArrowKeysDoesNotPlayIt(t *testing.T) {
+func TestArrowKeysPickTheMovesInSANOrder(t *testing.T) {
 	up := tea.KeyMsg{Type: tea.KeyUp}
 	m := press(newModel(t, newStore(t), ""), runes("N"), down)
 
 	first, _ := m.pickedMove()
-	m = press(m, down)
-	second, _ := m.pickedMove()
+	second, _ := press(m, down).pickedMove()
+	last, _ := press(newModel(t, newStore(t), ""), runes("N"), up).pickedMove()
+
+	if first.SAN != "Na3" || second.SAN != "Nc3" || last.SAN != "Nh3" {
+		t.Errorf("picked %q, %q and from the end %q", first.SAN, second.SAN, last.SAN)
+	}
+	if press(m, runes("f")).picking {
+		t.Error("typing should end the pick")
+	}
+}
+
+func TestPickedMoveIsFilledInByEnterAndPlayedByTheNextEnter(t *testing.T) {
+	m := press(newModel(t, newStore(t), ""), runes("N"), down, down)
+
 	m = press(m, enter)
 
-	if first.SAN != "Na3" || second.SAN != "Nc3" {
-		t.Errorf("picked %q then %q, want Na3 then Nc3", first.SAN, second.SAN)
-	}
-	if len(m.history.Moves()) != 0 {
-		t.Errorf("Enter played the picked move: %v", m.history.Moves())
+	if string(m.input) != "Nc3" || m.picking || len(m.history.Moves()) != 0 {
+		t.Fatalf("after the first Enter: input=%q picking=%v moves=%v", string(m.input), m.picking, m.history.Moves())
 	}
 
-	last, _ := press(newModel(t, newStore(t), ""), runes("N"), up).pickedMove()
-	if last.SAN != "Nh3" {
-		t.Errorf("up from the start picked %q, want Nh3", last.SAN)
-	}
+	m = press(m, enter)
 
-	m = press(m, runes("f"))
-	if m.picking {
-		t.Error("typing should end the pick")
+	if !slices.Equal(m.history.Moves(), []string{"Nc3"}) {
+		t.Errorf("after the second Enter: moves=%v", m.history.Moves())
 	}
 }

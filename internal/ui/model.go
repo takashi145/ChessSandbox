@@ -213,7 +213,9 @@ func (m Model) updateBoard(key tea.KeyMsg) (tea.Model, tea.Cmd) {
 	case "esc":
 		return m.quit()
 	case "enter":
-		if m.picking {
+		if picked, ok := m.pickedMove(); ok {
+			m.input = []rune(picked.SAN)
+			m.picking = false
 			return m, nil
 		}
 		return m.submit()
@@ -518,6 +520,9 @@ func (m Model) viewBoard(b *strings.Builder) {
 		return
 	}
 	b.WriteString(prompt + "_")
+	if len(m.input) == 0 && len(m.history.Candidates("")) > 0 {
+		b.WriteString(colored("90", " ↑↓ browse moves"))
+	}
 }
 
 func (m Model) hint() string {
