@@ -4,7 +4,7 @@ English | [日本語](README.ja.md)
 
 A terminal chess board for trying out positions. Play both sides, step back and forward through your moves, and pick up where you left off.
 
-<img width="733" height="322" alt="ChessSandbox board" src="https://github.com/user-attachments/assets/71e49067-fc0c-4f3d-9991-ffea8b15b2ec" />
+<img width="826" height="454" alt="demo" src="https://github.com/user-attachments/assets/87d68cee-2022-4cbc-9557-1e931d88f525" />
 
 ## Installation
 
