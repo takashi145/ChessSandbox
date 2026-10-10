@@ -185,3 +185,27 @@ func TestRestoreRejectsPositionOutOfRange(t *testing.T) {
 		}
 	}
 }
+
+func TestPreviewAgreesWithWhatEnterWouldPlay(t *testing.T) {
+	for _, input := range []string{"e4", " Nf3", "Qh9", ""} {
+		got := play(t).Preview(input).State == PreviewLegal
+		want := play(t).TryPlay(input)
+
+		if got != want {
+			t.Errorf("%q: preview legal = %v, Enter plays = %v", input, got, want)
+		}
+	}
+}
+
+func TestPreviewReportsTheSquaresAndLeavesTheHistoryAlone(t *testing.T) {
+	h := play(t)
+
+	p := h.Preview("Nf3")
+
+	if p.From == nil || *p.From != (Square{6, 0}) || p.To == nil || *p.To != (Square{5, 2}) {
+		t.Errorf("from/to = %v/%v, want g1/f3", p.From, p.To)
+	}
+	if len(h.Moves()) != 0 || h.Position() != 0 {
+		t.Errorf("history changed: moves=%v position=%d", h.Moves(), h.Position())
+	}
+}

@@ -434,7 +434,15 @@ func orUnknown(s string) string {
 func (m Model) viewBoard(b *strings.Builder) {
 	s := m.history.Snapshot()
 
-	b.WriteString(renderBoard(s, m.flipped))
+	board, mark := s, markLast
+	if m.mode == modeBoard {
+		if p := m.history.Preview(string(m.input)); p.State == chess.PreviewLegal {
+			board.From, board.To = p.From, p.To
+			mark = markPreview
+		}
+	}
+
+	b.WriteString(renderBoard(board, m.flipped, mark))
 	b.WriteString("\n\n")
 	b.WriteString(describeLastMove(s) + "\n")
 	b.WriteString(colored("90", m.hint()) + "\n")

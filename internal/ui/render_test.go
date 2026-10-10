@@ -24,7 +24,7 @@ func snapshotAfter(t *testing.T, moves ...string) chess.Snapshot {
 }
 
 func TestRenderWhiteAndBlackPiecesUseDifferentColors(t *testing.T) {
-	out := renderBoard(snapshotAfter(t), false)
+	out := renderBoard(snapshotAfter(t), false, markLast)
 
 	if !strings.Contains(out, "\x1b[37m"+pawn+reset) {
 		t.Error("white pawn color missing")
@@ -35,7 +35,7 @@ func TestRenderWhiteAndBlackPiecesUseDifferentColors(t *testing.T) {
 }
 
 func TestRenderDoesNotUseTheEmojiPawn(t *testing.T) {
-	out := renderBoard(snapshotAfter(t), false)
+	out := renderBoard(snapshotAfter(t), false, markLast)
 
 	for _, bad := range []string{"♟", "︎", "️"} {
 		if strings.Contains(out, bad) {
@@ -45,7 +45,7 @@ func TestRenderDoesNotUseTheEmojiPawn(t *testing.T) {
 }
 
 func TestRenderCapturingPieceKeepsItsOwnColorOnHighlight(t *testing.T) {
-	out := renderBoard(snapshotAfter(t, "e4", "d5", "exd5"), false)
+	out := renderBoard(snapshotAfter(t, "e4", "d5", "exd5"), false, markLast)
 
 	if !strings.Contains(out, "\x1b[37;48;5;59m"+pawn+reset) {
 		t.Error("white pawn on highlight missing")
@@ -56,7 +56,7 @@ func TestRenderCapturingPieceKeepsItsOwnColorOnHighlight(t *testing.T) {
 }
 
 func TestRenderHighlightsFromAndToSquares(t *testing.T) {
-	out := renderBoard(snapshotAfter(t, "e4"), false)
+	out := renderBoard(snapshotAfter(t, "e4"), false, markLast)
 
 	if got := strings.Count(out, "48;5;59"); got != 2 {
 		t.Errorf("highlighted squares = %d, want 2", got)
@@ -64,7 +64,7 @@ func TestRenderHighlightsFromAndToSquares(t *testing.T) {
 }
 
 func TestRenderAtStartHasNoHighlight(t *testing.T) {
-	if strings.Contains(renderBoard(snapshotAfter(t), false), "48;5;59") {
+	if strings.Contains(renderBoard(snapshotAfter(t), false, markLast), "48;5;59") {
 		t.Error("start position should not highlight anything")
 	}
 }
@@ -72,8 +72,8 @@ func TestRenderAtStartHasNoHighlight(t *testing.T) {
 func TestRenderFlippedReversesFilesAndRanks(t *testing.T) {
 	s := snapshotAfter(t)
 
-	normal := renderBoard(s, false)
-	flipped := renderBoard(s, true)
+	normal := renderBoard(s, false, markLast)
+	flipped := renderBoard(s, true, markLast)
 
 	if !strings.HasPrefix(normal, "    a b c d e f g h") {
 		t.Error("normal file labels wrong")
@@ -86,5 +86,16 @@ func TestRenderFlippedReversesFilesAndRanks(t *testing.T) {
 	}
 	if strings.Index(flipped, "1 │") > strings.Index(flipped, "8 │") {
 		t.Error("flipped board should list rank 1 first")
+	}
+}
+
+func TestRenderPreviewMarksSquaresWithItsOwnColor(t *testing.T) {
+	out := renderBoard(snapshotAfter(t, "e4"), false, markPreview)
+
+	if got := strings.Count(out, previewBackground); got != 2 {
+		t.Errorf("preview squares = %d, want 2", got)
+	}
+	if strings.Contains(out, highlightBackground) {
+		t.Error("preview should not use the last move's color")
 	}
 }

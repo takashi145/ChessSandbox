@@ -2,6 +2,7 @@ package chess
 
 import (
 	"fmt"
+	"strings"
 
 	lib "github.com/corentings/chess/v2"
 )
@@ -53,6 +54,32 @@ func (h *History) CanGoForward() bool { return h.position < len(h.moves) }
 func (h *History) CurrentFEN() string { return currentFEN(h.game) }
 
 func (h *History) Snapshot() Snapshot { return snapshot(h.game) }
+
+type PreviewState int
+
+const (
+	PreviewNone PreviewState = iota
+	PreviewLegal
+)
+
+type Preview struct {
+	State    PreviewState
+	From, To *Square
+}
+
+// Preview matches what TryPlay accepts, because both use the same notation decoder.
+func (h *History) Preview(input string) Preview {
+	input = strings.TrimSpace(input)
+	if input == "" {
+		return Preview{}
+	}
+
+	move, err := lib.AlgebraicNotation{}.Decode(h.game.Position(), input)
+	if err != nil {
+		return Preview{}
+	}
+	return Preview{State: PreviewLegal, From: toSquare(move.S1()), To: toSquare(move.S2())}
+}
 
 // Plays a move at the current position, dropping any moves ahead. State is unchanged on failure.
 func (h *History) TryPlay(san string) bool {
