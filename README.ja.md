@@ -2,7 +2,7 @@
 
 局面を試すための、ターミナル用のチェス盤です。両方の側を自分で指し、手を戻したり進めたりでき、前回の続きから再開できます。
 
-<img width="733" height="322" alt="ChessSandbox の盤面" src="https://github.com/user-attachments/assets/71e49067-fc0c-4f3d-9991-ffea8b15b2ec" />
+<img width="826" height="454" alt="demo" src="https://github.com/user-attachments/assets/87d68cee-2022-4cbc-9557-1e931d88f525" />
 
 ## インストール
 
