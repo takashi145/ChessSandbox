@@ -41,6 +41,8 @@ type Model struct {
 	games   []chess.PGNGame
 	cursor  int
 	input   []rune
+	picking bool
+	pick    int
 	pending string
 	message string
 	flipped bool
@@ -211,17 +213,55 @@ func (m Model) updateBoard(key tea.KeyMsg) (tea.Model, tea.Cmd) {
 	case "esc":
 		return m.quit()
 	case "enter":
+		if m.picking {
+			return m, nil
+		}
 		return m.submit()
+	case "up", "down":
+		return m.pickMove(key.String()), nil
 	}
 
 	if len(m.input) == 0 && m.navigate(key.String()) {
+		m.picking = false
 		m.message = ""
 		m.save()
 		return m, nil
 	}
 
+	m.picking = false
 	m.input = editInput(m.input, key)
 	return m, nil
+}
+
+func (m Model) pickMove(key string) Model {
+	candidates := m.history.Candidates(string(m.input))
+	if len(candidates) == 0 {
+		return m
+	}
+
+	switch {
+	case !m.picking && key == "up":
+		m.pick = len(candidates) - 1
+	case !m.picking:
+		m.pick = 0
+	case key == "up":
+		m.pick = (m.pick + len(candidates) - 1) % len(candidates)
+	default:
+		m.pick = (m.pick + 1) % len(candidates)
+	}
+	m.picking = true
+	return m
+}
+
+func (m Model) pickedMove() (chess.Candidate, bool) {
+	if !m.picking {
+		return chess.Candidate{}, false
+	}
+	candidates := m.history.Candidates(string(m.input))
+	if m.pick >= len(candidates) {
+		return chess.Candidate{}, false
+	}
+	return candidates[m.pick], true
 }
 
 func (m Model) navigate(key string) bool {
@@ -439,8 +479,18 @@ func (m Model) viewBoard(b *strings.Builder) {
 		preview = m.history.Preview(string(m.input))
 	}
 
+	var picked chess.Candidate
+	var picking bool
+	if m.mode == modeBoard {
+		picked, picking = m.pickedMove()
+	}
+
 	board, mark := s, markLast
-	if preview.State == chess.PreviewLegal {
+	switch {
+	case picking:
+		board.From, board.To = picked.From, picked.To
+		mark = markPreview
+	case preview.State == chess.PreviewLegal:
 		board.From, board.To = preview.From, preview.To
 		mark = markPreview
 	}
@@ -461,6 +511,11 @@ func (m Model) viewBoard(b *strings.Builder) {
 	prompt := "> " + string(m.input)
 	if preview.State == chess.PreviewInvalid {
 		prompt = colored("31", prompt)
+	}
+	if picking {
+		rest := strings.TrimPrefix(picked.SAN, strings.TrimSpace(string(m.input)))
+		b.WriteString(prompt + colored("90", rest))
+		return
 	}
 	b.WriteString(prompt + "_")
 }

@@ -224,3 +224,19 @@ func TestPreviewTellsLegalPartialAndInvalidInput(t *testing.T) {
 		}
 	}
 }
+
+func TestCandidatesAreTheLegalMovesStartingWithTheInputInSANOrder(t *testing.T) {
+	h := play(t)
+
+	var got []string
+	for _, c := range h.Candidates("N") {
+		got = append(got, c.SAN)
+	}
+
+	if !slices.Equal(got, []string{"Na3", "Nc3", "Nf3", "Nh3"}) {
+		t.Errorf("Candidates(N) = %v", got)
+	}
+	if len(h.Candidates("Nf5")) != 0 {
+		t.Error("Nf5 should have no candidates")
+	}
+}

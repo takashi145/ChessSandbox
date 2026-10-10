@@ -2,6 +2,7 @@ package chess
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 
 	lib "github.com/corentings/chess/v2"
@@ -141,4 +142,26 @@ func (h *History) rebuild(position int) *lib.Game {
 	}
 
 	return game
+}
+
+type Candidate struct {
+	SAN      string
+	From, To *Square
+}
+
+// Candidates returns the legal moves whose SAN starts with input, in SAN order.
+func (h *History) Candidates(input string) []Candidate {
+	input = strings.TrimSpace(input)
+	pos := h.game.Position()
+
+	var candidates []Candidate
+	for _, m := range pos.ValidMoves() {
+		san := lib.AlgebraicNotation{}.Encode(pos, &m)
+		if strings.HasPrefix(strings.TrimRight(san, "+#"), input) {
+			candidates = append(candidates, Candidate{SAN: san, From: toSquare(m.S1()), To: toSquare(m.S2())})
+		}
+	}
+
+	slices.SortFunc(candidates, func(a, b Candidate) int { return strings.Compare(a.SAN, b.SAN) })
+	return candidates
 }
